@@ -74,7 +74,7 @@ void MainWindow::on_modifier_button_clicked()
 
         if(p.modifierprod(idprod,typeprod,nomprod,qteprod)){
             msgBox.setText("modifié avec succes");
-            ui->tab_produit->setModel(P.afficherprod());
+            ui->tab_produit->setModel(p.afficherprod());
         }
         else
             msgBox.setText("Echec de la modification");

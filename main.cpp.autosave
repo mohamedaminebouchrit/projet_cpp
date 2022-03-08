@@ -9,11 +9,11 @@ int main(int argc, char *argv[])
     connexion c;
     bool test=c.create_cnx();
 
-    Dialog w;
+    
     if(test)
     {    w.show();
         QMessageBox::information(nullptr,QObject::tr("database is open"),
-                                 QObject::tr("connection succful .\n"),
+                                 QObject::tr("connection successful .\n"),
                 QMessageBox::Ok);
     }
 
