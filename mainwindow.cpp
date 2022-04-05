@@ -1,23 +1,13 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include"produit.h"
-#include<QMessageBox>
-#include<QSqlTableModel>
-#include<QString>
-#include<QDebug>
-#include<QSqlRecord>
-#include<QIntValidator>
-#include<iostream>
-#
-using namespace std;
-MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::MainWindow)
+#include "stock.h"
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent)
+    , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    ui->idprod->setValidator(new QIntValidator(0,999999,this));
-
-   ui->tab_personnel->setModel(P.afficher());
+    ui->tableView_stock->setModel(st.afficherst());
+    ui->comboBox_3_idact->setModel(st.afficheroncombost());
 }
 
 MainWindow::~MainWindow()
@@ -26,57 +16,114 @@ MainWindow::~MainWindow()
 }
 
 
-void MainWindow::on_bp_ajouter_clicked()
-{QMessageBox msgBox;
-    int idprod=ui->idprod->text().toInt();
-    QString nomprod=ui->nomprod->text();
-    QString typeprod=ui->typeprod->text();
-    QString dateprod=ui->dateprod->text();
-    QString qteprod=ui->qteprod->text();
-
-    produit p (idprod,nomprod,typeprod,dateprod,qteprod);
-
-    if(p.ajouterprod()){
-        msgBox.setText("Ajout avec succes");
-        ui->tab_produit->setModel(P.afficherprod());
-    }
-    else
-        msgBox.setText("Echec de l'ajout");
-    msgBox.exec();
+void MainWindow::on_pushButton_ajouterstock_clicked()
+{
+    stock s(ui->lineEdit_idstock->text().toInt(),ui->lineEdit_libprod->text(),ui->lineEdit_qte->text().toInt(),ui->dateEdit_date->text(),ui->lineEdit_desc->text());
+       bool test= s.ajouterst();
+       ui->tableView_stock->setModel(st.afficherst());
+       ui->comboBox_3_idact->setModel(st.afficheroncombost());
 
 }
 
-void MainWindow::on_bouton_sup_clicked()
+
+
+void MainWindow::on_comboBox_3_idact_currentIndexChanged(int index)
 {
-    bool test;
-      produit P;
-    p.setidprod(ui->idprod->text());
-     test=P.supprimerprod(P.getidprod());
-     QMessageBox msgBox;
-     if(test){
-         msgBox.setText("Produit supprimé avec Succees");
-         ui->tab_produit->setModel(P.afficherprod());
-     }
-         else
-             msgBox.setText("Echec de la supprission");
-    msgBox.exec();
+    ui->comboBox_3_idact->currentText();
 }
 
-void MainWindow::on_modifier_button_clicked()
+void MainWindow::on_pushButton_suppract_3_clicked()
 {
-    QMessageBox msgBox;
-    int idprod=ui->idprod->text().toInt();
-    QString nomprod=ui->nomprod->text();
-    QString typeprod=ui->typeprod->text();
-    QString dateprod=ui->dateprod->text();
-    QString qteprod=ui->qteprod->text();
-        produit p (idprod,nomprod,typeprod,dateprod,qteprod);
-
-        if(p.modifierprod(idprod,typeprod,nomprod,qteprod)){
-            msgBox.setText("modifié avec succes");
-            ui->tab_produit->setModel(P.afficherprod());
+    bool test=st.supprimerst(ui->comboBox_3_idact->currentText().toInt());
+    if(test)
+    {ui->tableView_stock->setModel(st.afficherst());//actualisation taa afficher
+            QMessageBox::information(nullptr,QObject::tr("ok"),
+                                     QObject::tr("suppression succful .\n"),
+                    QMessageBox::Cancel);
         }
+
         else
-            msgBox.setText("Echec de la modification");
-        msgBox.exec();
+            QMessageBox::critical(nullptr,QObject::tr("supprimer not open"),
+                                    QObject::tr("click cancel to exist"),
+                                    QMessageBox::Cancel);
+
+}
+
+void MainWindow::on_pushButton_ajouteract_2_clicked()
+{
+    bool    test=st.modifierst(ui->lineEdit_idstock->text().toInt(),ui->lineEdit_libprod->text(),ui->lineEdit_qte->text().toInt(),ui->dateEdit_date->text(),ui->lineEdit_desc->text()) ;
+          if (test)
+          {
+                  ui->tableView_stock->setModel(st.afficherst());
+                  ui->comboBox_3_idact->setModel(st.afficheroncombost());
+              QMessageBox::information(nullptr,QObject::tr("OK"),
+                                   QObject::tr("modification établie"),
+                                   QMessageBox::Ok);}
+          else{
+          QMessageBox::critical(nullptr,QObject::tr("ERROR404"),
+                                  QObject::tr("modification non établie"),
+                                  QMessageBox::Cancel);}
+}
+
+void MainWindow::on_lineEdit_rech_textChanged(const QString &arg1)
+{
+    QSqlQueryModel *model= new QSqlQueryModel();
+            QSqlQuery   *query= new QSqlQuery();
+    if(ui->comboBox_crit->currentText()=="idstock"
+            ){
+        query->prepare("SELECT * FROM stock WHERE idstock LIKE'"+arg1+"%'");//
+query->exec();
+    model->setQuery(*query);
+ui->tableView_stock->setModel(model);
+
+
+    }
+    else {
+        if(ui->comboBox_crit->currentText()=="lib_prod"){
+            query->prepare("SELECT * FROM stock WHERE lib_prod LIKE'"+arg1+"%'");//+tri
+    query->exec();
+        model->setQuery(*query);
+    ui->tableView_stock->setModel(model);
+        }
+        else{
+            if(ui->comboBox_crit->currentText()=="datee")
+                query->prepare("SELECT * FROM stock WHERE datee LIKE'"+arg1+"%'");//+tri
+        query->exec();
+            model->setQuery(*query);
+        ui->tableView_stock->setModel(model);
+            }
+
+        }
+}
+
+void MainWindow::on_pushButton_clicked()
+{
+    st.genererPDFst();
+}
+
+void MainWindow::on_pushButton_2_clicked()
+{
+    stat_edu=new stateduact(this);
+    stat_edu->show();
+}
+
+void MainWindow::on_button_tri_clicked()
+{
+    QString colone=ui->colone_tri->currentText();
+        QString ordre=ui->ordre_tri->currentText();
+        stock s;
+        ui->tableView_stock->setModel(s.tri(colone,ordre));
+}
+
+
+
+void MainWindow::on_pushButton_3_clicked()
+{bool test;
+    test=st.dispo(ui->Editdispolibprod->text());
+    if(!test)
+    {
+        QMessageBox::information(nullptr,QObject::tr("OK"),
+                             QObject::tr("non dispo"),
+                             QMessageBox::Ok);
+    }
 }

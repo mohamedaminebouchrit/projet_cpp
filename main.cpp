@@ -1,5 +1,5 @@
-#include "dialog.h"
-#include "connexion.h" //pas de connexion pour le moment
+#include "mainwindow.h"
+#include "connexion.h"
 #include <QApplication>
 #include <QMessageBox>
 
@@ -9,7 +9,7 @@ int main(int argc, char *argv[])
     connexion c;
     bool test=c.create_cnx();
 
-    Dialog w;
+    MainWindow w;
     if(test)
     {    w.show();
         QMessageBox::information(nullptr,QObject::tr("database is open"),
